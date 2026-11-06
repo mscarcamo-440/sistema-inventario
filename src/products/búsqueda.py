@@ -1,6 +1,6 @@
 from products.producto import Producto
 
-def buscar_por_nombre(productos, texto):
+def buscar_por_nombre(productos, texto)
     texto = texto.lower()
     return [p for p in productos if texto in p.nombre.lower()]
 
