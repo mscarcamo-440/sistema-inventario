@@ -9,8 +9,7 @@ class Producto:
         print(f"Código: {self.codigo}")
         print(f"Nombre: {self.nombre}")
         print(f"Precio: ${self.precio:.2f}")
-        print(f"Número de whahtsaap waza: {self.existencia}")
-
+        print(f"Existencia: {self.existencia} unidades")
 
 if __name__ == "__main__":
     Producto("P001", "Teclado", 350.00, 25).mostrar()
