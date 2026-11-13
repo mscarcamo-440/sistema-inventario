@@ -8,7 +8,7 @@ class Producto:
     def mostrar(self):
         print(f"Código: {self.codigo}")
         print(f"Nombre: {self.nombre}")
-        print(f"Precio: ${self.precio:.2f}")
+        print(f"Precio: ${self.precio + 1:.2f}")
         print(f"Existencia: {self.existencia} unidades")
 
 if __name__ == "__main__":
