@@ -41,9 +41,9 @@ jobs:
         id: verificar
         continue-on-error: true
         run: |
-          cd despliegue/actual/src/products
-          ls -l
-          for f in *.py; do
+          cd despliegue/actual/src
+          export PYTHONPATH=$(pwd)
+          for f in products/*.py; do
             echo "▶ Ejecutando $f"
             python3 "$f"
           done
@@ -51,14 +51,15 @@ jobs:
       - name: Rollback a versión anterior si falló
         if: steps.verificar.outcome == 'failure'
         run: |
-          echo "La versión $VERSION falló. Recuperando $ANTERIOR..."
+          echo "❌ La versión $VERSION falló. Recuperando $ANTERIOR..."
           cd despliegue
           gh release download "$ANTERIOR" -R ${{ github.repository }} --clobber
           unzip -o "sistema-inventario-$ANTERIOR.zip" -d "version-$ANTERIOR"
           ln -sfn "version-$ANTERIOR" actual
-          cd actual/src/products
-          for f in *.py; do
+          cd actual/src
+          export PYTHONPATH=$(pwd)
+          for f in products/*.py; do
             echo "▶ Ejecutando $f"
             python3 "$f"
           done
-          echo "Sistema restaurado a $ANTERIOR"
+          echo "✅ Sistema restaurado a $ANTERIOR"
