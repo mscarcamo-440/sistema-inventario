@@ -1,0 +1,58 @@
+name: Despliegue del Sistema de Inventario
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versión a desplegar"
+        default: "v1.0.3"
+      anterior:
+        description: "Versión de respaldo (rollback)"
+        default: "v1.0.3"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      ANTERIOR: ${{ inputs.anterior }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Verificar requisitos del entorno
+        run: |
+          uname -a
+          python3 --version
+          unzip -v | head -1
+
+      - name: Descargar versión liberada
+        run: |
+          mkdir -p despliegue && cd despliegue
+          gh release download "$VERSION" -R ${{ github.repository }}
+          ls -l
+
+      - name: Extraer paquete
+        run: |
+          cd despliegue
+          unzip -o "sistema-inventario-$VERSION.zip" -d "version-$VERSION"
+          ln -sfn "version-$VERSION" actual
+          ls -R "version-$VERSION"
+
+      - name: Ejecutar y verificar el sistema
+        id: verificar
+        continue-on-error: true
+        run: |
+          cd despliegue/actual/src/products
+          python3 producto.py
+          python3 búsqueda.py
+
+      - name: Rollback a versión anterior si falló
+        if: steps.verificar.outcome == 'failure'
+        run: |
+          echo "La versión $VERSION falló. Recuperando $ANTERIOR..."
+          cd despliegue
+          gh release download "$ANTERIOR" -R ${{ github.repository }}
+          unzip -o "sistema-inventario-$ANTERIOR.zip" -d "version-$ANTERIOR"
+          ln -sfn "version-$ANTERIOR" actual
+          cd actual/src/products
+          python3 producto.py
+          echo "Sistema restaurado a $ANTERIOR"
