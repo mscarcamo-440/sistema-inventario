@@ -27,7 +27,7 @@ jobs:
       - name: Descargar versión liberada
         run: |
           mkdir -p despliegue && cd despliegue
-          gh release download "$VERSION" -R ${{ github.repository }}
+          gh release download "$VERSION" -R ${{ github.repository }} --clobber
           ls -l
 
       - name: Extraer paquete
@@ -42,17 +42,23 @@ jobs:
         continue-on-error: true
         run: |
           cd despliegue/actual/src/products
-          python3 producto.py
-          python3 búsqueda.py
+          ls -l
+          for f in *.py; do
+            echo "▶ Ejecutando $f"
+            python3 "$f"
+          done
 
       - name: Rollback a versión anterior si falló
         if: steps.verificar.outcome == 'failure'
         run: |
           echo "La versión $VERSION falló. Recuperando $ANTERIOR..."
           cd despliegue
-          gh release download "$ANTERIOR" -R ${{ github.repository }}
+          gh release download "$ANTERIOR" -R ${{ github.repository }} --clobber
           unzip -o "sistema-inventario-$ANTERIOR.zip" -d "version-$ANTERIOR"
           ln -sfn "version-$ANTERIOR" actual
           cd actual/src/products
-          python3 producto.py
+          for f in *.py; do
+            echo "▶ Ejecutando $f"
+            python3 "$f"
+          done
           echo "Sistema restaurado a $ANTERIOR"
